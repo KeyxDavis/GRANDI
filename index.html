@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Mentorship Matching Platform (Full Self-Contained)</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    margin: 0; padding: 1em;
+    background: #f0f4f8;
+    color: #333;
+  }
+  .hidden { display: none; }
+  header {
+    background: #0077b6;
+    color: white;
+    padding: 1em;
+    border-radius: 5px;
+    margin-bottom: 1em;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  input, select, textarea, button {
+    display: block;
+    margin: 0.5em 0 1em 0;
+    padding: 0.5em;
+    width: 100%;
+    max-width: 400px;
+    border-radius: 3px;
+    border: 1px solid #ccc;
+  }
+  button {
+    background: #023e8a;
+    color: white;
+    border: none;
+    cursor: pointer;
+    max-width: 150px;
+  }
+  button:hover {
+    background: #03045e;
+  }
+  ul {
+    list-style: none;
+    padding-left: 0;
+  }
+  li {
+    background: white;
+    margin-bottom: 0.5em;
+    padding: 0.75em;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+  }
+  .request-actions button {
+    margin-right: 0.5em;
+  }
+  label {
+    font-weight: bold;
+  }
+  .container {
+    max-width: 600px;
+    margin: auto;
+  }
+  .flex-row {
+    display: flex;
+    gap: 1em;
+    flex-wrap: wrap;
+  }
+  .flex-row > * {
+    flex: 1 1 45%;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- Authentication -->
+  <section id="auth-section">
+    <h2>Login</h2>
+    <form id="login-form">
+      <label for="login-email">Email</label>
+      <input type="email" id="login-email" required placeholder="Email" />
+      <label for="login-password">Password</label>
+      <input type="password" id="login-password" required placeholder="Password" />
+      <button type="submit">Login</button>
+    </form>
+    <p>Don't have an account? <button id="show-register">Register here</button></p>
+
+    <div id="register-section" class="hidden">
+      <h2>Register</h2>
+      <form id="register-form">
+        <label for="register-email">Email</label>
+        <input type="email" id="register-email" required placeholder="Email" />
+        <label for="register-password">Password</label>
+        <input type="password" id="register-password" required placeholder="Password" />
+        <label for="register-role">Role</label>
+        <select id="register-role" required>
+          <option value="">Select Role</option>
+          <option value="mentee">Mentee</option>
+          <option value="mentor">Mentor</option>
+          <option value="admin">Admin</option>
+        </select>
+        <button type="submit">Register</button>
+      </form>
+      <button id="back-to-login">Back to Login</button>
+    </div>
+  </section>
+
+  <!-- Main App -->
+  <section id="app-section" class="hidden">
+    <header>
+      <div>
+        Mentorship Platform — Logged in as <strong id="user-email"></strong> (<span id="user-role"></span>)
+      </div>
+      <button id="logout-btn">Logout</button>
+    </header>
+
+    <!-- Profile -->
+    <section id="profile-section">
+      <h2>Your Profile</h2>
+      <form id="profile-form">
+        <label for="profile-name">Name</label>
+        <input type="text" id="profile-name" required placeholder="Your full name" />
+        <label for="profile-bio">Short Bio</label>
+        <textarea id="profile-bio" rows="3" placeholder="Tell us about yourself"></textarea>
+        <label for="profile-skills">Skills (comma separated)</label>
+        <input type="text" id="profile-skills" placeholder="e.g. Marketing, UI/UX" />
+        <label for="profile-goals">Goals (comma separated)</label>
+        <input type="text" id="profile-goals" placeholder="e.g. Improve product design skills" />
+        <button type="submit">Save Profile</button>
+      </form>
+    </section>
+
+    <!-- Mentor Discovery (Mentees only) -->
+    <section id="mentor-discovery" class="hidden">
+      <h2>Find Mentors</h2>
+      <label for="filter-skill">Filter by Skill</label>
+      <input type="text" id="filter-skill" placeholder="e.g. Marketing" />
+      <button id="search-mentors-btn">Search</button>
+      <ul id="mentor-list"></ul>
+    </section>
+
+    <!-- Mentorship Requests -->
+    <section id="requests-section" class="hidden">
+      <h2>Mentorship Requests</h2>
+      <div id="requests-sent-section" class="hidden">
+        <h3>Requests You Sent</h3>
+        <ul id="requests-sent-list"></ul>
+      </div>
+      <div id="requests-received-section" class="hidden">
+        <h3>Requests You Received</h3>
+        <ul id="requests-received-list"></ul>
+      </div>
+    </section>
+
+    <!-- Sessions -->
+    <section id="sessions-section" class="hidden">
+      <h2>Your Sessions</h2>
+      <ul id="sessions-list"></ul>
+    </section>
+
+    <!-- Session Booking (Mentees only) -->
+    <section id="session-booking-section" class="hidden">
+      <h2>Book a Session</h2>
+      <label for="select-mentor-for-session">Select Mentor</label>
+      <select id="select-mentor-for-session"></select>
+      <label for="session-datetime">Select Date & Time</label>
+      <input type="datetime-local" id="session-datetime" />
+      <button id="book-session-btn">Book Session</button>
+    </section>
+
+    <!-- Session Feedback -->
+    <section id="session-feedback-section" class="hidden">
+      <h2>Submit Session Feedback</h2>
+      <label for="select-session-feedback">Select Session</label>
+      <select id="select-session-feedback"></select>
+      <label for="feedback-rating">Rating (1-5)</label>
+      <input type="number" id="feedback-rating" min="1" max="5" />
+      <label for="feedback-comment">Comment</label>
+      <textarea id="feedback-comment" rows="3"></textarea>
+      <button id="submit-feedback-btn">Submit Feedback</button>
+    </section>
+
+    <!-- Admin Dashboard -->
+    <section id="admin-dashboard-section" class="hidden">
+      <h2>Admin Dashboard</h2>
+      <h3>Users</h3>
+      <ul id="admin-users-list"></ul>
+
+      <h3>Mentorship Requests</h3>
+      <ul id="admin-requests-list"></ul>
+
+      <h3>Sessions</h3>
+      <ul id="admin-sessions-list"></ul>
+
+      <h3>Assign Mentor to Mentee</h3>
+      <label for="admin-select-mentee">Select Mentee</label>
+      <select id="admin-select-mentee"></select>
+      <label for="admin-select-mentor">Select Mentor</label>
+      <select id="admin-select-mentor"></select>
+      <button id="admin-assign-btn">Assign Mentor</button>
+    </section>
+
+  </section>
+</div>
+
+<script>
+  // Utility functions to manage localStorage data
+  function getUsers() {
+    return JSON.parse(localStorage.getItem('users') || '[]');
+  }
+  function saveUsers(users) {
+    localStorage.setItem('users', JSON.stringify(users));
+  }
+  function getMentorshipRequests() {
+    return JSON.parse(localStorage.getItem('requests') || '[]');
+  }
+  function saveMentorshipRequests(requests) {
+    localStorage.setItem('requests', JSON.stringify(requests));
+  }
+  function getSessions() {
+    return JSON.parse(localStorage.getItem('sessions') || '[]');
+  }
+  function saveSessions(sessions) {
+    localStorage.setItem('sessions', JSON.stringify(sessions));
+  }
+
+  // Current logged in user
+  let currentUser = null;
+
+  // Elements
+  const authSection = document.getElementById('auth-section');
+  const appSection = document.getElementById('app-section');
+  const loginForm = document.getElementById('login-form');
+  const registerSection = document.getElementById('register-section');
+  const registerForm = document.getElementById('register-form');
+  const showRegisterBtn = document.getElementById('show-register');
+  const backToLoginBtn = document.getElementById('back-to-login');
+  const logoutBtn = document.getElementById('logout-btn');
+
+  const userEmailSpan = document.getElementById('user-email');
+  const userRoleSpan = document.getElementById('user-role');
+
+  const profileForm = document.getElementById('profile-form');
+  const profileName = document.getElementById('profile-name');
+  const profileBio = document.getElementById('profile-bio');
+  const profileSkills = document.getElementById('profile-skills');
+  const profileGoals = document.getElementById('profile-goals');
+
+  const mentorDiscovery = document.getElementById('mentor-discovery');
+  const filterSkillInput = document.getElementById('filter-skill');
+  const searchMentorsBtn = document.getElementById('search-mentors-btn');
+  const mentorList = document.getElementById('mentor-list');
+
+  const requestsSection = document.getElementById('requests-section');
+  const requestsSentSection = document.getElementById('requests-sent-section');
+  const requestsSentList = document.getElementById('requests-sent-list');
+  const requestsReceivedSection = document.getElementById('requests-received-section');
+  const requestsReceivedList = document.getElementById('requests-received-list');
+
+  const sessionsSection = document.getElementById('sessions-section');
+  const sessionsList = document.getElementById('sessions-list');
+
+  const sessionBookingSection = document.getElementById('session-booking-section');
+  const selectMentorForSession = document.getElementById('select-mentor-for-session');
+  const sessionDatetimeInput = document.getElementById('session-datetime');
+  const bookSessionBtn = document.getElementById('book-session-btn');
+
+  const sessionFeedbackSection = document.getElementById('session-feedback-section');
+  const selectSessionFeedback = document.getElementById('select-session-feedback');
+  const feedbackRatingInput = document.getElementById('feedback-rating');
+  const feedbackCommentInput = document.getElementById('feedback-comment');
+  const submitFeedbackBtn = document.getElementById('submit-feedback-btn');
+
+  const adminDashboardSection = document.getElementById('admin-dashboard-section');
+  const adminUsersList = document.getElementById('admin-users-list');
+  const adminRequestsList = document.getElementById('admin-requests-list');
+  const adminSessionsList = document.getElementById('admin-sessions-list');
+  const adminSelectMentee = document.getElementById('admin-select-mentee');
+  const adminSelectMentor = document.getElementById('admin-select-mentor');
+  const adminAssignBtn = document.getElementById('admin-assign-btn');
+
+  // Show/hide elements
+  function show(element) { element.classList.remove('hidden'); }
+  function hide(element) { element.classList.add('hidden'); }
+
+  // Password hashing simulation (very basic, not secure, just for demo)
+  function simpleHash(str) {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+      hash = (hash << 5) - hash + str.charCodeAt(i);
+      hash |= 0;
+    }
+    return hash.toString();
+  }
+
+  // Authentication
+  loginForm.addEventListener('submit', e => {
+    e.preventDefault();
+    const email = document.getElementById('login-email').value.trim().toLowerCase();
+    const password = document.getElementById('login-password').value;
+
+    const users = getUsers();
+    const user = users.find(u => u.email === email && u.passwordHash === simpleHash(password));
+    if (!user) {
+      alert('Invalid email or password');
+      return;
+    }
+    currentUser = user;
+    localStorage.setItem('currentUserEmail', currentUser.email);
+    loadApp();
+  });
+
+  showRegisterBtn.addEventListener('click', () => {
+    hide(loginForm);
+    show(registerSection);
+  });
+
+  backToLoginBtn.addEventListener('click', () => {
+    show(loginForm);
+    hide(registerSection);
+  });
+
+  registerForm.addEventListener('submit', e => {
+    e.preventDefault();
+    const email = document.getElementById('register-email').value.trim().toLowerCase();
+    const password = document.getElementById('register-password').value;
+    const role = document.getElementById('register-role').value;
+
+    if (!email || !password || !role) {
+      alert('Please fill all fields');
+      return;
+    }
+
+    const users = getUsers();
+    if (users.some(u => u.email === email)) {
+      alert('Email already registered');
+      return;
+    }
+
+    const newUser = {
+      email,
+      passwordHash: simpleHash(password),
+      role,
+      profile: {
+        name: '',
+        bio: '',
+        skills: [],
+        goals: []
+      }
+    };
+    users.push(newUser);
+    saveUsers(users);
+    alert('Registration successful! Please login.');
+    registerForm.reset();
+    show(loginForm);
+    hide(registerSection);
+  });
+
+  logoutBtn.addEventListener('click', () => {
+    currentUser = null;
+    localStorage.removeItem('currentUserEmail');
+    show(authSection);
+    hide(appSection);
+  });
+
+  // Load app after login
+  function loadApp() {
+    hide(authSection);
+    show(appSection);
+    userEmailSpan.textContent = currentUser.email;
+    userRoleSpan.textContent = currentUser.role;
+
+    loadProfile();
+    setupRoleUI();
+    loadMentors();
+    loadRequests();
+    loadSessions();
+    setupAdditionalUI();
+    populateMentorDropdown();
+    populateSessionFeedbackDropdown();
+  }
+
+  // Load current user profile
+  function loadProfile() {
+    profileName.value = currentUser.profile.name || '';
+    profileBio.value = currentUser.profile.bio || '';
+    profileSkills.value = (currentUser.profile.skills || []).join(', ');
+    profileGoals.value = (currentUser.profile.goals || []).join(', ');
+  }
+
+  // Save profile
+  profileForm.addEventListener('submit', e => {
+    e.preventDefault();
+    currentUser.profile.name = profileName.value.trim();
+    currentUser.profile.bio = profileBio.value.trim();
+    currentUser.profile.skills = profileSkills.value.split(',').map(s => s.trim()).filter(Boolean);
+    currentUser.profile.goals = profileGoals.value.split(',').map(s => s.trim()).filter(Boolean);
+
+    const users = getUsers();
+    const idx = users.findIndex(u => u.email === currentUser.email);
+    if (idx !== -1) {
+      users[idx] = currentUser;
+      saveUsers(users);
+      alert('Profile saved!');
+    }
+  });
+
+  // Setup UI based on role
+  function setupRoleUI() {
+    if (currentUser.role === 'mentee') {
+      show(mentorDiscovery);
+      show(requestsSection);
+      show(requestsSentSection);
+      hide(requestsReceivedSection);
+      hide(sessionsSection);
+    } else if (currentUser.role === 'mentor') {
+      hide(mentorDiscovery);
+      show(requestsSection);
+      hide(requestsSentSection);
+      show(requestsReceivedSection);
+      show(sessionsSection);
+    } else if (currentUser.role === 'admin') {
+      hide(mentorDiscovery);
+      hide(requestsSection);
+      hide(sessionsSection);
+      show(adminDashboardSection);
+    }
+  }
+
+  // Load mentors for mentees
+  function loadMentors(filterSkill = '') {
+    try {
+      if (currentUser.role !== 'mentee') {
+        mentorList.innerHTML = '<li>Mentor discovery is only available for mentees.</li>';
+        return;
+      }
+      const users = getUsers();
+      const mentors = users.filter(u => u.role === 'mentor');
+
+      let filtered = mentors;
+      if (filterSkill) {
+        const skillLower = filterSkill.toLowerCase();
+        filtered = mentors.filter(m =>
+          (m.profile.skills || []).some(skill => skill.toLowerCase().includes(skillLower))
+        );
+      }
+
+      mentorList.innerHTML = '';
+      if (filtered.length === 0) {
+        mentorList.innerHTML = '<li>No mentors found.</li>';
+        return;
+      }
+
+      filtered.forEach(mentor => {
+        const li = document.createElement('li');
+        li.innerHTML = `
+          <strong>${mentor.profile.name || mentor.email}</strong><br/>
+          Skills: ${(mentor.profile.skills || []).join(', ') || 'N/A'}<br/>
+          Bio: ${mentor.profile.bio || 'N/A'}<br/>
+          <button data-email="${mentor.email}">Request Mentorship</button>
+        `;
+        li.querySelector('button').addEventListener('click', () => sendMentorshipRequest(mentor.email));
+        mentorList.appendChild(li);
+      });
+    } catch (error) {
+      console.error('Error loading mentors:', error);
+      mentorList.innerHTML = '<li>Error loading mentors. Check console.</li>';
+    }
+  }
+
+  // Attach event listener for Search button
+  searchMentorsBtn.addEventListener('click', () => {
+    loadMentors(filterSkillInput.value.trim());
+  });
+
+  // Send mentorship request
+  function sendMentorshipRequest(mentorEmail) {
+    if (currentUser.role !== 'mentee') return alert('Only mentees can send requests.');
+
+    const requests = getMentorshipRequests();
+    // Check for existing request
+    if (requests.some(r => r.menteeEmail === currentUser.email && r.mentorEmail === mentorEmail)) {
+      return alert('You already sent a request to this mentor.');
+    }
+
+    requests.push({
+      id: Date.now(),
+      menteeEmail: currentUser.email,
+      mentorEmail,
+      status: 'PENDING'
+    });
+    saveMentorshipRequests(requests);
+    alert('Mentorship request sent!');
+    loadRequests();
+  }
+
+  // Load mentorship requests
+  function loadRequests() {
+    const requests = getMentorshipRequests();
+
+    if (currentUser.role === 'mentee') {
+      show(requestsSentSection);
+      const sent = requests.filter(r => r.menteeEmail === currentUser.email);
+      requestsSentList.innerHTML = sent.length === 0 ? '<li>No sent requests.</li>' : '';
+      sent.forEach(r => {
+        const li = document.createElement('li');
+        li.textContent = `To Mentor: ${r.mentorEmail}, Status: ${r.status}`;
+        requestsSentList.appendChild(li);
+      });
+      hide(requestsReceivedSection);
+    } else if (currentUser.role === 'mentor') {
+      show(requestsReceivedSection);
+      const received = requests.filter(r => r.mentorEmail === currentUser.email);
+      requestsReceivedList.innerHTML = received.length === 0 ? '<li>No received requests.</li>' : '';
+      received.forEach(r => {
+        const li = document.createElement('li');
+        li.innerHTML = `
+          From Mentee: ${r.menteeEmail}, Status: ${r.status}
+          <div class="request-actions">
+            <button data-id="${r.id}" data-action="accept">Accept</button>
+            <button data-id="${r.id}" data-action="reject">Reject</button>
+          </div>
+        `;
+        li.querySelector('button[data-action="accept"]').addEventListener('click', () => updateRequestStatus(r.id, 'ACCEPTED'));
+        li.querySelector('button[data-action="reject"]').addEventListener('click', () => updateRequestStatus(r.id, 'REJECTED'));
+        requestsReceivedList.appendChild(li);
+      });
+      hide(requestsSentSection);
+    } else {
+      hide(requestsSentSection);
+      hide(requestsReceivedSection);
+    }
+  }
+
+  // Update request status (mentor accepts/rejects)
+  function updateRequestStatus(requestId, status) {
+    const requests = getMentorshipRequests();
+    const idx = requests.findIndex(r => r.id === requestId);
+    if (idx === -1) return alert('Request not found');
+    requests[idx].status = status;
+    saveMentorshipRequests(requests);
+    alert(`Request ${status.toLowerCase()}!`);
+    loadRequests();
+    loadSessions(); // Refresh sessions after accept
+    populateMentorDropdown();
+  }
+
+  // Load sessions (for mentors and mentees)
+  function loadSessions() {
+    if (currentUser.role === 'admin') {
+      hide(sessionsSection);
+      return;
+    }
+    show(sessionsSection);
+    const sessions = getSessions();
+    let userSessions;
+    if (currentUser.role === 'mentor') {
+      userSessions = sessions.filter(s => s.mentorEmail === currentUser.email);
+    } else if (currentUser.role === 'mentee') {
+      userSessions = sessions.filter(s => s.menteeEmail === currentUser.email);
+    } else {
+      userSessions = [];
+    }
+
+    sessionsList.innerHTML = '';
+    if (userSessions.length === 0) {
+      sessionsList.innerHTML = '<li>No sessions scheduled.</li>';
+      return;
+    }
+
+    userSessions.forEach(session => {
+      const li = document.createElement('li');
+      li.innerHTML = `
+        <strong>Session ID:</strong> ${session.id}<br/>
+        <strong>Mentor:</strong> ${session.mentorEmail}<br/>
+        <strong>Mentee:</strong> ${session.menteeEmail}<br/>
+        <strong>Scheduled Time:</strong> ${new Date(session.scheduledTime).toLocaleString()}<br/>
+        <strong>Feedback (Mentee):</strong> ${session.feedbackMentee || 'N/A'}<br/>
+        <strong>Feedback (Mentor):</strong> ${session.feedbackMentor || 'N/A'}<br/>
+        <strong>Rating:</strong> ${session.rating || 'N/A'}
+      `;
+      sessionsList.appendChild(li);
+    });
+  }
+
+  // Show/hide new sections based on role and setup additional UI
+  function setupAdditionalUI() {
+    // Session booking only for mentees with accepted mentorships
+    if (currentUser.role === 'mentee') {
+      show(sessionBookingSection);
+      show(sessionFeedbackSection);
+    } else {
+      hide(sessionBookingSection);
+      hide(sessionFeedbackSection);
+    }
+
+    // Admin dashboard
+    if (currentUser.role === 'admin') {
+      show(adminDashboardSection);
+      loadAdminDashboard();
+    } else {
+      hide(adminDashboardSection);
+    }
+  }
+
+  // Populate mentor dropdown for session booking (only mentors with accepted requests)
+  function populateMentorDropdown() {
+    const requests = getMentorshipRequests();
+    const acceptedMentors = requests
+      .filter(r => r.menteeEmail === currentUser.email && r.status === 'ACCEPTED')
+      .map(r => r.mentorEmail);
+
+    // Get unique mentors
+    const uniqueMentors = [...new Set(acceptedMentors)];
+    selectMentorForSession.innerHTML = '';
+
+    if (uniqueMentors.length === 0) {
+      const option = document.createElement('option');
+      option.textContent = 'No mentors available. Accept mentorship requests first.';
+      option.disabled = true;
+      selectMentorForSession.appendChild(option);
+      return;
+    }
+
+    uniqueMentors.forEach(email => {
+      const option = document.createElement('option');
+      option.value = email;
+      option.textContent = email;
+      selectMentorForSession.appendChild(option);
+    });
+  }
+
+  // Book a session
+  bookSessionBtn.addEventListener('click', () => {
+    const mentorEmail = selectMentorForSession.value;
+    const datetime = sessionDatetimeInput.value;
+    if (!mentorEmail) {
+      alert('Please select a mentor from the dropdown. You must have an accepted mentorship request.');
+      return;
+    }
+    if (!datetime) {
+      alert('Please select a date and time for the session.');
+      return;
+    }
+
+    const sessions = getSessions();
+    sessions.push({
+      id: Date.now(),
+      mentorEmail,
+      menteeEmail: currentUser.email,
+      scheduledTime: datetime,
+      feedbackMentee: '',
+      feedbackMentor: '',
+      rating: null
+    });
+    saveSessions(sessions);
+    alert('Session booked successfully!');
+    sessionDatetimeInput.value = '';
+    loadSessions();
+    populateSessionFeedbackDropdown();
+  });
+
+  // Populate sessions dropdown for feedback (only past or upcoming sessions of current user)
+  function populateSessionFeedbackDropdown() {
+    const sessions = getSessions();
+    let userSessions = [];
+    if (currentUser.role === 'mentee') {
+      userSessions = sessions.filter(s => s.menteeEmail === currentUser.email);
+    } else if (currentUser.role === 'mentor') {
+      userSessions = sessions.filter(s => s.mentorEmail === currentUser.email);
+    }
+    selectSessionFeedback.innerHTML = '';
+    if (userSessions.length === 0) {
+      const option = document.createElement('option');
+      option.textContent = 'No sessions available';
+      option.disabled = true;
+      selectSessionFeedback.appendChild(option);
+      return;
+    }
+    userSessions.forEach(s => {
+      const option = document.createElement('option');
+      option.value = s.id;
+      option.textContent = `Session with Mentor: ${s.mentorEmail}, Mentee: ${s.menteeEmail}, Scheduled: ${new Date(s.scheduledTime).toLocaleString()}`;
+      selectSessionFeedback.appendChild(option);
+    });
+  }
+
+  // Submit feedback
+  submitFeedbackBtn.addEventListener('click', () => {
+    const sessionId = Number(selectSessionFeedback.value);
+    const rating = Number(feedbackRatingInput.value);
+    const comment = feedbackCommentInput.value.trim();
+
+    if (!sessionId) {
+      alert('Please select a session');
+      return;
+    }
+    if (rating < 1 || rating > 5) {
+      alert('Rating must be between 1 and 5');
+      return;
+    }
+
+    const sessions = getSessions();
+    const idx = sessions.findIndex(s => s.id === sessionId);
+    if (idx === -1) {
+      alert('Session not found');
+      return;
+    }
+
+    if (currentUser.role === 'mentee') {
+      sessions[idx].rating = rating;
+      sessions[idx].feedbackMentee = comment;
+    } else if (currentUser.role === 'mentor') {
+      sessions[idx].feedbackMentor = comment;
+    } else {
+      alert('You cannot submit feedback');
+      return;
+    }
+
+    saveSessions(sessions);
+    alert('Feedback submitted!');
+    feedbackRatingInput.value = '';
+    feedbackCommentInput.value = '';
+    populateSessionFeedbackDropdown();
+    loadSessions();
+  });
+
+  // Admin dashboard data loading
+  function loadAdminDashboard() {
+    const users = getUsers();
+    const requests = getMentorshipRequests();
+    const sessions = getSessions();
+
+    // Users list
+    adminUsersList.innerHTML = '';
+    users.forEach(u => {
+      const li = document.createElement('li');
+      li.textContent = `${u.email} (${u.role})`;
+      adminUsersList.appendChild(li);
+    });
+
+    // Requests list
+    adminRequestsList.innerHTML = '';
+    requests.forEach(r => {
+      const li = document.createElement('li');
+      li.textContent = `Mentee: ${r.menteeEmail}, Mentor: ${r.mentorEmail}, Status: ${r.status}`;
+      adminRequestsList.appendChild(li);
+    });
+
+    // Sessions list
+    adminSessionsList.innerHTML = '';
+    sessions.forEach(s => {
+      const li = document.createElement('li');
+      li.textContent = `Session ID: ${s.id}, Mentor: ${s.mentorEmail}, Mentee: ${s.menteeEmail}, Scheduled: ${new Date(s.scheduledTime).toLocaleString()}`;
+      adminSessionsList.appendChild(li);
+    });
+
+    // Populate mentee and mentor selects for manual assignment
+    adminSelectMentee.innerHTML = '';
+    adminSelectMentor.innerHTML = '';
+
+    users.filter(u => u.role === 'mentee').forEach(u => {
+      const option = document.createElement('option');
+      option.value = u.email;
+      option.textContent = u.email;
+      adminSelectMentee.appendChild(option);
+    });
+
+    users.filter(u => u.role === 'mentor').forEach(u => {
+      const option = document.createElement('option');
+      option.value = u.email;
+      option.textContent = u.email;
+      adminSelectMentor.appendChild(option);
+    });
+  }
+
+  // Admin assign mentor to mentee (creates accepted mentorship request)
+  adminAssignBtn.addEventListener('click', () => {
+    const menteeEmail = adminSelectMentee.value;
+    const mentorEmail = adminSelectMentor.value;
+    if (!menteeEmail || !mentorEmail) {
+      alert('Select both mentee and mentor');
+      return;
+    }
+
+    const requests = getMentorshipRequests();
+    // Check if request already exists
+    const exists = requests.some(r => r.menteeEmail === menteeEmail && r.mentorEmail === mentorEmail);
+    if (exists) {
+      alert('Mentorship request already exists');
+      return;
+    }
+
+    requests.push({
+      id: Date.now(),
+      menteeEmail,
+      mentorEmail,
+      status: 'ACCEPTED'
+    });
+    saveMentorshipRequests(requests);
+    alert('Mentor assigned to mentee!');
+    loadAdminDashboard();
+    if (currentUser.role === 'mentee' || currentUser.role === 'mentor') {
+      loadRequests();
+      loadSessions();
+    }
+  });
+
+  // On page load, check if user logged in
+  window.onload = () => {
+    const savedEmail = localStorage.getItem('currentUserEmail');
+    if (savedEmail) {
+      const users = getUsers();
+      const user = users.find(u => u.email === savedEmail);
+      if (user) {
+        currentUser = user;
+        loadApp();
+        return;
+      }
+    }
+    // Show auth if no user
+    show(authSection);
+    hide(appSection);
+  };
+</script>
+</body>
+</html>
