@@ -53,6 +53,6 @@ The **Mentorship Matching Platform** is a web application designed to connect me
 - **API URL**  - [Download here](http://192.168.43.130:5000)
 
 ## Video demonstrating our work
-- **Video** - [Download here] [https://drive.google.com/file/d/1uXvR_80By0ryF11Ip-eYui9w5h3PTxUK/view?usp=sharing]
+- **Video** - [Download here](https://drive.google.com/file/d/1uXvR_80By0ryF11Ip-eYui9w5h3PTxUK/view?usp=sharing)
 
   
