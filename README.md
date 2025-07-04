@@ -17,7 +17,7 @@ The **Mentorship Matching Platform** is a web application designed to connect me
 ## Technology Stack
 
 - **Backend:** Python Flask [Download here](https://drive.google.com/file/d/1x4kwJ1zchN4wjyXsVeWwrqalUIWWnXsx/view?usp=sharing) for authentication
-- **Frontend:** HTML, CSS and JavaScript [Download here][https://drive.google.com/file/d/1ph2CVqvKTN16whkOVuuNarr4yktvrixk/view?usp=drive_link] with role-based routing and protected pages
+- **Frontend:** HTML, CSS and JavaScript [Download here](https://drive.google.com/file/d/1ph2CVqvKTN16whkOVuuNarr4yktvrixk/view?usp=sharing) with role-based routing and protected pages
 - **Development Tools:** VS Code for coding, with environment management using dockerfile (for HTML tools if any)  
 - **Version Control:** Git and GitHub [https://github.com/KeyxDavis] for source code management
 
