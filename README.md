@@ -52,6 +52,6 @@ The **Mentorship Matching Platform** is a web application designed to connect me
 - **Final Project** - [Download here] [https://grandi-1.onrender.com/]
 
 ## Video demonstrating our work
-- **Video** - [Download here] [https://drive.google.com/file/d/1ph2CVqvKTN16whkOVuuNarr4yktvrixk/view?usp=sharing]
+- **Video** - [Download here] [https://drive.google.com/file/d/1uXvR_80By0ryF11Ip-eYui9w5h3PTxUK/view?usp=sharing]
 
   
