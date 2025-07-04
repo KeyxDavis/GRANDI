@@ -19,7 +19,7 @@ The **Mentorship Matching Platform** is a web application designed to connect me
 - **Backend:** Python Flask [Download here](https://drive.google.com/file/d/1x4kwJ1zchN4wjyXsVeWwrqalUIWWnXsx/view?usp=sharing) for authentication
 - **Frontend:** HTML, CSS and JavaScript [Download here](https://drive.google.com/file/d/1ph2CVqvKTN16whkOVuuNarr4yktvrixk/view?usp=sharing) with role-based routing and protected pages
 - **Development Tools:** VS Code for coding, with environment management using dockerfile (for HTML tools if any)  
-- **Version Control:** Git and GitHub [https://github.com/KeyxDavis] for source code management
+- **Version Control:** Git and GitHub [Download here](https://github.com/KeyxDavis) for source code management
 
 ## Getting Started
 
@@ -32,7 +32,7 @@ The **Mentorship Matching Platform** is a web application designed to connect me
 ### Installation
 
 1. Clone the repository
--  git clone [Download here] [https://github.com/KeyxDavis/GRANDI.git]
+-  git clone [Download here](https://github.com/KeyxDavis/GRANDI.git)
 2. Backend setup
 -  cd backend
 -  pip install
@@ -49,8 +49,8 @@ The **Mentorship Matching Platform** is a web application designed to connect me
 *For questions or support, contact [davidadebowale15@gmail.com].*
 
 ## End Result
-- **Final Project/Website URL** - [Download here] [https://grandi-1.onrender.com/]
-- **API URL**  - [Download here] [(http://192.168.43.130:5000)]
+- **Final Project/Website URL** - [Download here](https://grandi-1.onrender.com/)
+- **API URL**  - [Download here](http://192.168.43.130:5000)
 
 ## Video demonstrating our work
 - **Video** - [Download here] [https://drive.google.com/file/d/1uXvR_80By0ryF11Ip-eYui9w5h3PTxUK/view?usp=sharing]
